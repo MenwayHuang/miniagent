@@ -4,7 +4,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
-![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-orange.svg)
+![Ollama](https://img.shields.io/badge/Ollama-local-green.svg)
 ![Code Style](https://img.shields.io/badge/Code%20Style-Black-black.svg)
 
 一个轻量级的智能代理框架，实现完整的 ReAct（推理-行动）模式
@@ -33,7 +33,7 @@ MiniAgent 是一个轻量级的智能代理框架，实现了完整的 ReAct（�
 ### 环境要求
 
 - Python 3.8+
-- OpenAI API Key
+- Ollama 本地服务（默认）或 OpenAI API Key（可选）
 
 ### 安装步骤
 
@@ -48,9 +48,24 @@ MiniAgent 是一个轻量级的智能代理框架，实现了完整的 ReAct（�
    pip install -r requirements.txt
    ```
 
-3. **设置API密钥**
+3. **准备本地模型**
    ```bash
+   ollama pull qwen2.5:7b
+   ```
+
+   MiniAgent 默认使用本地 Ollama 的 `qwen2.5:7b` 模型。
+
+4. **可选：切换模型或提供方**
+   ```bash
+   export OLLAMA_MODEL="qwen3.5:9b"
+   export OLLAMA_BASE_URL="http://127.0.0.1:11434/v1"
+   ```
+
+   如果要改回 OpenAI：
+   ```bash
+   export MINI_AGENT_PROVIDER="openai"
    export OPENAI_API_KEY="your-openai-api-key"
+   export OPENAI_MODEL="gpt-4o-mini"
    ```
 
 ## 🚀 快速开始
@@ -71,11 +86,11 @@ python examples.py
 
 ```python
 import asyncio
-from mini_agent import MiniAgent, SimpleLLM
+from mini_agent import MiniAgent, OllamaLLM
 
 async def main():
-    # 创建LLM实例
-    llm = SimpleLLM(api_key="your-api-key", model="gpt-4o-mini")
+    # 创建本地Ollama LLM实例
+    llm = OllamaLLM(model="qwen2.5:7b")
     
     # 创建代理
     agent = MiniAgent(llm=llm, name="MyAgent")
@@ -93,7 +108,7 @@ asyncio.run(main())
 mini_agent/
 ├── schema.py          # 数据结构定义 (Message, Memory, AgentState)
 ├── tools.py           # 工具系统 (BaseTool, 具体工具实现)
-├── llm.py             # LLM接口 (SimpleLLM)
+├── llm.py             # LLM接口 (SimpleLLM, OllamaLLM)
 ├── agent.py           # 智能代理核心 (MiniAgent)
 └── __init__.py        # 模块导出
 ```
@@ -102,7 +117,7 @@ mini_agent/
 
 1. **Message & Memory**: 消息和记忆系统
 2. **BaseTool**: 工具基类和具体工具实现
-3. **SimpleLLM**: 简化的语言模型接口
+3. **SimpleLLM / OllamaLLM**: 简化的语言模型接口，默认支持本地 Ollama
 4. **MiniAgent**: 核心代理类，实现ReAct模式
 
 ## 💡 快速体验
