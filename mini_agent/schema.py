@@ -45,12 +45,13 @@ class Memory(BaseModel):
         self.messages.append(message)
     
     def get_messages(self) -> List[Dict[str, Any]]:
-        """转换为OpenAI API格式"""
+        """转换为OpenAI兼容API格式"""
         result = []
         for msg in self.messages:
-            message_dict = {"role": msg.role.value}
-            if msg.content:
-                message_dict["content"] = msg.content
+            message_dict = {
+                "role": msg.role.value,
+                "content": msg.content if msg.content is not None else "",
+            }
             if msg.tool_calls:
                 message_dict["tool_calls"] = msg.tool_calls
             if msg.tool_call_id:

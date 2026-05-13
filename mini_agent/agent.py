@@ -32,7 +32,7 @@ class MiniAgent:
 你是一个有用的AI助手，可以使用各种工具来帮助用户完成任务。
 
 当你需要执行具体操作时，请使用提供的工具：
-- python_execute: 执行Python代码
+- python_execute: 执行Python代码并返回stdout输出。需要让用户看到计算结果时，必须在代码中使用print(...)。
 - file_editor: 读写文件和查看目录
 - bash_execute: 执行命令行命令
 

@@ -40,7 +40,7 @@ mini_agent/
 |------|------|----------|-------------|
 | `mini_agent/schema.py` | 59 | 数据结构定义 | `Message`, `Memory`, `AgentState`, `Role` |
 | `mini_agent/tools.py` | 187 | 工具系统实现 | `BaseTool`, `ToolCollection`, 3个具体工具 |
-| `mini_agent/llm.py` | 85 | LLM接口封装 | `SimpleLLM`, `LLMResponse` |
+| `mini_agent/llm.py` | ~120 | LLM接口封装 | `SimpleLLM`, `OllamaLLM`, `LLMResponse`, `create_llm_from_env` |
 | `mini_agent/agent.py` | 171 | 智能代理核心 | `MiniAgent` 及 ReAct 执行循环 |
 | `mini_agent/__init__.py` | 20 | 模块导出 | 统一的API接口导出 |
 
@@ -75,17 +75,20 @@ mini_agent/
 # 1. 安装依赖
 pip install -r requirements.txt
 
-# 2. 设置API密钥
-export OPENAI_API_KEY="your-openai-api-key"
+# 2. 准备本地Ollama模型（默认）
+ollama pull qwen2.5:7b
+
+# 3. 可选：切换到更强模型
+export OLLAMA_MODEL="qwen3.5:9b"
 ```
 
 ### 运行方式
 
-| 运行模式 | 命令 | 说明 | 需要API密钥 |
+| 运行模式 | 命令 | 说明 | 需要OpenAI API密钥 |
 |----------|------|------|-------------|
 | 功能测试 | `python test_mini.py` | 验证基础功能 | ❌ |
-| 交互模式 | `python main_mini.py` | 持续对话执行任务 | ✅ |
-| 示例演示 | `python examples.py` | 三类典型用例 | ✅ |
+| 交互模式 | `python main_mini.py` | 持续对话执行任务，默认本地Ollama | ❌ |
+| 示例演示 | `python examples.py` | 三类典型用例，默认本地Ollama | ❌ |
 
 ## 💡 核心技术特点
 
@@ -102,7 +105,7 @@ while self.state == AgentState.RUNNING and self.current_step < self.max_steps:
 
 ### 可扩展工具系统
 - **抽象基类设计**：统一的工具接口 `BaseTool`
-- **自动转换**：支持 OpenAI Function Calling 格式
+- **自动转换**：支持 OpenAI兼容 Function Calling 格式
 - **错误处理**：超时保护和异常恢复
 - **插件式架构**：易于添加新工具
 

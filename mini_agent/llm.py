@@ -1,6 +1,7 @@
 """
 LLM接口实现
 """
+import os
 from typing import List, Dict, Any, Optional
 from openai import AsyncOpenAI
 from pydantic import BaseModel
@@ -15,12 +16,20 @@ class LLMResponse(BaseModel):
 class SimpleLLM:
     """简化的LLM接口"""
     
-    def __init__(self, api_key: str, model: str = "gpt-4o-mini", base_url: str = "https://api.openai.com/v1"):
+    def __init__(
+        self,
+        api_key: str,
+        model: str = "gpt-4o-mini",
+        base_url: str = "https://api.openai.com/v1",
+        provider: str = "openai",
+    ):
         self.client = AsyncOpenAI(
             api_key=api_key,
             base_url=base_url
         )
         self.model = model
+        self.base_url = base_url
+        self.provider = provider
     
     async def chat(
         self, 
@@ -53,7 +62,7 @@ class SimpleLLM:
             request_params["tool_choice"] = "auto"
         
         try:
-            # 调用OpenAI API
+            # 调用OpenAI兼容API
             response = await self.client.chat.completions.create(**request_params)
             
             message = response.choices[0].message
@@ -80,3 +89,47 @@ class SimpleLLM:
         except Exception as e:
             print(f"LLM调用错误: {e}")
             return LLMResponse(content=f"LLM调用失败: {str(e)}")
+
+
+class OllamaLLM(SimpleLLM):
+    """本地Ollama LLM适配器，复用OpenAI兼容接口"""
+
+    def __init__(
+        self,
+        model: str = "qwen2.5:7b",
+        base_url: str = "http://127.0.0.1:11434/v1",
+        api_key: str = "ollama",
+    ):
+        super().__init__(
+            api_key=api_key,
+            model=model,
+            base_url=base_url,
+            provider="ollama",
+        )
+
+
+def create_llm_from_env() -> SimpleLLM:
+    """根据环境变量创建LLM实例，默认使用本地Ollama"""
+    provider = os.getenv("MINI_AGENT_PROVIDER", "ollama").strip().lower()
+
+    if provider == "ollama":
+        return OllamaLLM(
+            model=os.getenv("OLLAMA_MODEL", "qwen2.5:7b"),
+            base_url=os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1"),
+        )
+
+    if provider == "openai":
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("使用OpenAI时请设置环境变量 OPENAI_API_KEY")
+
+        return SimpleLLM(
+            api_key=api_key,
+            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+            base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+        )
+
+    raise ValueError(
+        "不支持的 MINI_AGENT_PROVIDER: "
+        f"{provider}，可选值为 ollama 或 openai"
+    )

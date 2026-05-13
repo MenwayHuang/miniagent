@@ -39,7 +39,7 @@ class BaseTool(ABC):
 
 **学习重点：**
 1. **抽象接口设计**：所有工具都有统一的`execute`方法
-2. **OpenAI函数格式**：`to_function_def()`转换为LLM可理解的格式
+2. **OpenAI兼容函数格式**：`to_function_def()`转换为LLM可理解的格式
 3. **具体实现**：Python执行、文件操作、命令行执行
 
 ### 第三阶段：LLM接口 (`llm.py`)
@@ -51,9 +51,10 @@ class SimpleLLM:
 ```
 
 **核心机制：**
-- 构建符合OpenAI API的请求格式
+- 构建符合OpenAI兼容Chat Completions API的请求格式
 - 处理工具调用响应
 - 解析结构化输出
+- 默认可通过 `OllamaLLM` 连接本地 Ollama，也可以通过 `SimpleLLM` 连接 OpenAI
 
 ### 第四阶段：代理核心 (`agent.py`)
 

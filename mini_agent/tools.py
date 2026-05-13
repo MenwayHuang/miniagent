@@ -27,7 +27,7 @@ class BaseTool(ABC, BaseModel):
         pass
     
     def to_function_def(self) -> Dict[str, Any]:
-        """转换为OpenAI函数调用格式"""
+        """转换为OpenAI兼容函数调用格式"""
         return {
             "type": "function",
             "function": {
@@ -41,7 +41,7 @@ class BaseTool(ABC, BaseModel):
 class PythonExecutor(BaseTool):
     """Python代码执行工具"""
     name: str = "python_execute"
-    description: str = "执行Python代码并返回结果"
+    description: str = "执行Python代码并返回stdout输出。需要返回结果时，代码中必须使用print(...)。"
     parameters: Dict[str, Any] = {
         "type": "object",
         "properties": {
@@ -55,7 +55,7 @@ class PythonExecutor(BaseTool):
     
     async def execute(self, code: str, **kwargs) -> ToolResult:
         try:
-            # 简化版本：使用exec执行代码
+            # 简化版本：使用exec执行代码，只返回print产生的stdout
             local_vars = {}
             global_vars = {"__builtins__": __builtins__}
             
@@ -70,7 +70,10 @@ class PythonExecutor(BaseTool):
                 output = mystdout.getvalue()
             finally:
                 sys.stdout = old_stdout
-            
+
+            if not output:
+                output = "代码执行成功，但没有stdout输出。若需要返回结果，请在代码中使用print(...)。"
+
             return ToolResult(success=True, output=output)
         except Exception as e:
             return ToolResult(success=False, error=str(e))
